@@ -9,16 +9,18 @@ function isValidEmail(s: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
+const DEFAULT_CONTACT_TO = "sel.yil@t-online.de";
+
 export async function POST(req: NextRequest) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.CONTACT_FROM;
-  const to = process.env.CONTACT_TO;
+  const from = process.env.CONTACT_FROM?.trim();
+  const to = process.env.CONTACT_TO?.trim() || DEFAULT_CONTACT_TO;
 
-  if (!apiKey || !from || !to) {
+  if (!apiKey || !from) {
     return NextResponse.json(
       {
         error:
-          "Kontaktformular ist noch nicht konfiguriert. Bitte RESEND_API_KEY, CONTACT_FROM und CONTACT_TO in Vercel hinterlegen.",
+          "Kontaktformular ist noch nicht konfiguriert. Bitte in Vercel mindestens RESEND_API_KEY und CONTACT_FROM (verifizierte Absender-Adresse bei Resend) setzen. Empfänger ist standardmäßig sel.yil@t-online.de — optional mit CONTACT_TO überschreiben.",
       },
       { status: 503 }
     );
