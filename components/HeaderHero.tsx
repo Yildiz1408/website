@@ -159,6 +159,9 @@ export function Header({
 export function Hero({ t, onNav }: { t: Messages; onNav: (e: React.MouseEvent, id: string) => void }) {
   const heroRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
+    const fine = window.matchMedia("(pointer: fine)");
+    if (!fine.matches) return;
+
     const onMove = (e: MouseEvent) => {
       const el = heroRef.current;
       if (!el) return;
@@ -183,7 +186,7 @@ export function Hero({ t, onNav }: { t: Messages; onNav: (e: React.MouseEvent, i
         <div className="hero-stage" ref={heroRef}>
           <HeroArchitecture />
           <div className="hero-inner">
-            <div>
+            <div className="hero-copy">
               <div className="hero-badge">
                 <span className="dot" />
                 {t.hero.badge.join(" · ")}
@@ -233,7 +236,7 @@ export function Hero({ t, onNav }: { t: Messages; onNav: (e: React.MouseEvent, i
             <div className="hero-panel-wrap">
               <div className="hero-panel">
                 <div className="seal">
-                  <SYSeal size={200} />
+                  <SYSeal className="seal-svg" />
                 </div>
                 <ul className="hero-panel-list">
                   {t.hero.panelList.map((item, i) => (
@@ -252,9 +255,9 @@ export function Hero({ t, onNav }: { t: Messages; onNav: (e: React.MouseEvent, i
                     <span className="float-icon">
                       <Icon name={i === 0 ? "clock" : i === 1 ? "lock" : "check"} size={20} stroke={1.6} />
                     </span>
-                    <div>
-                      <div style={{ fontWeight: 600, color: "var(--ink)", marginBottom: 2 }}>{f.t}</div>
-                      <div style={{ color: "var(--muted)", fontSize: 11.5 }}>{f.s}</div>
+                    <div className="float-card-text">
+                      <div className="float-card-title">{f.t}</div>
+                      <div className="float-card-sub">{f.s}</div>
                     </div>
                   </div>
                 ))}

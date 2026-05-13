@@ -233,17 +233,24 @@ export function Icon({ name, size = 20, stroke = 1.5, className, style }: IconPr
 const gold = "#B48A52";
 const goldSoft = "#DBBE89";
 
-type SealProps = { size?: number; onDark?: boolean };
+type SealProps = { size?: number; onDark?: boolean; className?: string };
 
-export function SYSeal({ size = 200, onDark = false }: SealProps) {
+export function SYSeal({ size, onDark = false, className }: SealProps) {
   const uid = useId().replace(/:/g, "");
   const topId = `seal-top-${uid}`;
   const botId = `seal-bot-${uid}`;
   const ringText = onDark ? "#DBBE89" : "#15202F";
   const yColor = onDark ? "#F2EDE2" : "#15202F";
   const stroke = onDark ? goldSoft : gold;
+  const dim = size != null ? { width: size, height: size } : { width: "100%", height: "100%" };
   return (
-    <svg viewBox="0 0 200 200" width={size} height={size} aria-hidden>
+    <svg
+      viewBox="0 0 200 200"
+      className={className}
+      preserveAspectRatio="xMidYMid meet"
+      aria-hidden
+      {...dim}
+    >
       <defs>
         <path id={topId} d="M 30 100 A 70 70 0 0 1 170 100" />
         <path id={botId} d="M 30 100 A 70 70 0 0 0 170 100" />
