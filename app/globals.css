@@ -620,18 +620,6 @@ section {
   width: 100%;
   height: 100%;
 }
-.seal-mono {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-family: var(--serif);
-  color: var(--gold);
-  font-size: 64px;
-  letter-spacing: -0.04em;
-  font-weight: 500;
-}
-.seal-mono span:nth-child(2) { color: var(--ink); margin-left: -4px; }
 
 .hero-panel-list {
   list-style: none;
