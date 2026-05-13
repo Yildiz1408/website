@@ -188,8 +188,8 @@ export function Hero({ t, onNav }: { t: Messages; onNav: (e: React.MouseEvent, i
           <div className="hero-inner">
             <div className="hero-copy">
               <div className="hero-badge">
-                <span className="dot" />
-                {t.hero.badge.join(" · ")}
+                <span className="dot" aria-hidden />
+                <span className="hero-badge-text">{t.hero.badge.join(" · ")}</span>
               </div>
               <h1 className="hero-headline">
                 {t.hero.headline_a}

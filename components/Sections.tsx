@@ -144,7 +144,7 @@ export function About({ t, onNav }: { t: Messages; onNav: (e: React.MouseEvent, 
             <div className="crest-text">{t.about.crest}</div>
           </div>
           <div className="about-content">
-            <span className="eyebrow">{t.about.eyebrow}</span>
+            <span className="eyebrow center">{t.about.eyebrow}</span>
             <h2 className="section-title" style={{ marginTop: 16 }} dangerouslySetInnerHTML={{ __html: t.about.title }} />
             <div className="about-body" style={{ marginTop: 28 }}>
               {t.about.body.map((p, i) => (
