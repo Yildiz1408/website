@@ -1,24 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 
 const MAX_MESSAGE = 8000;
-const WEB3FORMS_URL = "https://api.web3forms.com/submit";
 
 function isValidEmail(s: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
-type Web3FormsResponse = { success?: boolean; message?: string };
-
 export async function POST(req: NextRequest) {
-  const accessKey = process.env.WEB3FORMS_ACCESS_KEY?.trim();
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const smtpPass = process.env.SMTP_PASS?.trim();
 
-  if (!accessKey) {
+  if (!smtpUser || !smtpPass) {
     return NextResponse.json(
       {
         error:
-          "Kontaktformular ist nicht konfiguriert. Bitte WEB3FORMS_ACCESS_KEY in Vercel setzen (kostenlos auf web3forms.com — dort die Ziel-E-Mail, z. B. t-online, eintragen).",
+          "Kontaktformular ist nicht konfiguriert. Bitte SMTP_USER und SMTP_PASS in Vercel hinterlegen.",
       },
       { status: 503 }
     );
@@ -31,28 +30,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 400 });
   }
 
-  const name = String(body.name ?? "")
-    .trim()
-    .slice(0, 200);
-  const email = String(body.email ?? "")
-    .trim()
-    .slice(0, 320);
-  const phone = String(body.phone ?? "")
-    .trim()
-    .slice(0, 80);
-  const subject = String(body.subject ?? "")
-    .trim()
-    .slice(0, 200);
+  const name = String(body.name ?? "").trim().slice(0, 200);
+  const email = String(body.email ?? "").trim().slice(0, 320);
+  const phone = String(body.phone ?? "").trim().slice(0, 80);
+  const subject = String(body.subject ?? "").trim().slice(0, 200);
   const message = String(body.message ?? "").trim();
-  const attachmentName = String(body.attachmentName ?? "")
-    .trim()
-    .slice(0, 500);
+  const attachmentName = String(body.attachmentName ?? "").trim().slice(0, 500);
 
   if (!name || !email || !message) {
-    return NextResponse.json({ error: "Name, E-Mail und Nachricht sind erforderlich." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Name, E-Mail und Nachricht sind erforderlich." },
+      { status: 400 }
+    );
   }
   if (!isValidEmail(email)) {
-    return NextResponse.json({ error: "Ungültige E-Mail-Adresse." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Ungültige E-Mail-Adresse." },
+      { status: 400 }
+    );
   }
   if (message.length > MAX_MESSAGE) {
     return NextResponse.json({ error: "Nachricht ist zu lang." }, { status: 400 });
@@ -69,38 +64,28 @@ export async function POST(req: NextRequest) {
     attachmentName ? `\n\nAnhang (nur Dateiname): ${attachmentName}` : null,
   ].filter(Boolean) as string[];
 
-  const payload: Record<string, string> = {
-    access_key: accessKey,
-    subject: subject ? `Kontakt: ${subject}` : `Kontakt: ${name}`,
-    from_name: name,
-    email,
-    replyto: email,
-    message: textLines.join("\n"),
-  };
-  if (phone) payload.phone = phone;
+  const transporter = nodemailer.createTransport({
+    host: "securesmtp.t-online.de",
+    port: 465,
+    secure: true,
+    auth: {
+      user: smtpUser,
+      pass: smtpPass,
+    },
+  });
 
-  let upstream: Response;
   try {
-    upstream = await fetch(WEB3FORMS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify(payload),
+    await transporter.sendMail({
+      from: `"Website Kontakt" <${smtpUser}>`,
+      to: "sel.yil@t-online.de",
+      replyTo: email,
+      subject: subject ? `Kontakt: ${subject}` : `Kontakt: ${name}`,
+      text: textLines.join("\n"),
     });
-  } catch {
-    return NextResponse.json({ error: "Versanddienst nicht erreichbar. Bitte später erneut versuchen." }, { status: 502 });
-  }
-
-  let data: Web3FormsResponse = {};
-  try {
-    data = (await upstream.json()) as Web3FormsResponse;
-  } catch {
-    /* ignore */
-  }
-
-  if (!upstream.ok || data.success === false) {
-    const hint = typeof data.message === "string" ? data.message : "";
+  } catch (err) {
+    console.error("SMTP error:", err);
     return NextResponse.json(
-      { error: hint || "E-Mail konnte nicht gesendet werden." },
+      { error: "E-Mail konnte nicht gesendet werden. Bitte später erneut versuchen." },
       { status: 502 }
     );
   }
